@@ -35,10 +35,10 @@ main {
 form input,
 form textarea {
   width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.6rem;
+  margin-bottom: 0.7rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 1rem;
 }
 
@@ -59,6 +59,7 @@ form button:hover {
   margin-top: 2rem;
 }
 
+/* Post cards */
 .post-card {
   background: #fff;
   padding: 1rem;
@@ -70,21 +71,12 @@ form button:hover {
   gap: 0.5rem;
 }
 
-.post-card input.edit-title {
-  font-weight: bold;
-  font-size: 1.1rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
+.post-card input.edit-title,
 .post-card textarea.edit-content {
-  resize: vertical;
-  min-height: 80px;
+  width: 100%;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 1rem;
   font-family: inherit;
 }
 
@@ -126,4 +118,14 @@ footer {
   background: #f4f4f4;
   color: #666;
   margin-top: 2rem;
+}
+
+/* Form container */
+.form-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }

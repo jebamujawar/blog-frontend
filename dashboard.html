@@ -18,16 +18,20 @@
   <main>
     <h2>Create New Post</h2>
     <form id="postForm">
-      <input type="text" id="title" placeholder="Title" required>
-      <textarea id="content" placeholder="Content" rows="4" required></textarea>
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" placeholder="Enter title" required autocomplete="off">
+
+      <label for="content">Content:</label>
+      <textarea id="content" name="content" placeholder="Enter content" rows="4" required></textarea>
+
       <button type="submit">Create Post</button>
     </form>
 
     <h2>My Posts</h2>
-    <div id="myPosts"></div>
+    <div id="myPosts"><p style="text-align:center; color:#666;">Loading your posts...</p></div>
   </main>
 
-  <footer style="text-align:center; padding:1rem;">© 2026 My Blog</footer>
+  <footer>© 2026 My Blog</footer>
   <script src="script.js"></script>
 </body>
 </html>
