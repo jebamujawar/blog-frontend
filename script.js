@@ -1,22 +1,32 @@
-const API_URL = "https://blog-backend-3-eoll.onrender.com/api";
+const API_URL = "https://blog-backend-3-eoll.onrender.com/api"; // your Render backend
 
-// Load all posts
+// --------------------------------------
+// Public posts on index.html
+// --------------------------------------
 async function loadPosts() {
-  const res = await fetch(`${API_URL}/posts`);
-  const posts = await res.json();
   const container = document.getElementById("posts");
   if (!container) return;
-  container.innerHTML = posts.map(p => `
-    <div class="post">
-      <h2>${p.title}</h2>
-      <p>${p.content}</p>
-      <small>By ${p.author.name}</small>
-    </div>
-  `).join("");
+
+  try {
+    const res = await fetch(`${API_URL}/posts`);
+    const posts = await res.json();
+    container.innerHTML = posts.map(p => `
+      <div class="post">
+        <h3>${p.title}</h3>
+        <p>${p.content}</p>
+        <small>By ${p.author.name}</small>
+      </div>
+    `).join("");
+  } catch (err) {
+    container.innerHTML = "<p>Failed to load posts</p>";
+    console.error(err);
+  }
 }
 loadPosts();
 
-// Signup form
+// --------------------------------------
+// Signup
+// --------------------------------------
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
   signupForm.addEventListener("submit", async e => {
@@ -24,60 +34,160 @@ if (signupForm) {
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    const res = await fetch(`${API_URL}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password })
-    });
-    const data = await res.json();
-    alert(data.message || data.error);
-    if (res.ok) window.location.href = "login.html";
+
+    try {
+      const res = await fetch(`${API_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Signup successful!");
+        window.location.href = "login.html";
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Signup failed");
+    }
   });
 }
 
-// Login form
+// --------------------------------------
+// Login
+// --------------------------------------
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async e => {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      window.location.href = "dashboard.html";
-    } else {
-      alert(data.error);
+
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.userId);
+        window.location.href = "dashboard.html";
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
     }
   });
 }
 
-// Dashboard create post
-const postForm = document.getElementById("postForm");
-if (postForm) {
+// --------------------------------------
+// Dashboard
+// --------------------------------------
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+
+if (window.location.href.includes("dashboard.html")) {
+  if (!token) {
+    alert("Please login first");
+    window.location.href = "login.html";
+  }
+
+  const postForm = document.getElementById("postForm");
+  const myPostsContainer = document.getElementById("myPosts");
+
+  // Load user's posts
+  async function loadMyPosts() {
+    try {
+      const res = await fetch(`${API_URL}/posts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const posts = await res.json();
+      const myPosts = posts.filter(p => p.author._id === userId);
+
+      myPostsContainer.innerHTML = myPosts.map(p => `
+        <div class="post" data-id="${p._id}">
+          <input class="edit-title" value="${p.title}" />
+          <textarea class="edit-content">${p.content}</textarea>
+          <button onclick="savePost('${p._id}')">Save</button>
+          <button onclick="deletePost('${p._id}')">Delete</button>
+        </div>
+      `).join("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load posts");
+    }
+  }
+
+  loadMyPosts();
+
+  // Create post
   postForm.addEventListener("submit", async e => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
 
-    const res = await fetch(`${API_URL}/posts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-      body: JSON.stringify({ title, content })
-    });
-    if (res.ok) {
-      alert("Post created");
+    try {
+      const res = await fetch(`${API_URL}/posts`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content })
+      });
+      if (!res.ok) throw await res.json();
       postForm.reset();
-    } else {
-      const data = await res.json();
-      alert(data.error);
+      loadMyPosts();
+    } catch (err) {
+      console.error(err);
+      alert(err.error || "Failed to create post");
     }
   });
+
+  // Delete post
+  window.deletePost = async function(postId) {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+    try {
+      const res = await fetch(`${API_URL}/posts/${postId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw await res.json();
+      loadMyPosts();
+    } catch (err) {
+      console.error(err);
+      alert(err.error || "Failed to delete post");
+    }
+  }
+
+  // Save post (edit)
+  window.savePost = async function(postId) {
+    const container = document.querySelector(`.post[data-id="${postId}"]`);
+    const title = container.querySelector(".edit-title").value;
+    const content = container.querySelector(".edit-content").value;
+
+    try {
+      const res = await fetch(`${API_URL}/posts/${postId}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content })
+      });
+      if (!res.ok) throw await res.json();
+      loadMyPosts();
+    } catch (err) {
+      console.error(err);
+      alert(err.error || "Failed to update post");
+    }
+  }
 }

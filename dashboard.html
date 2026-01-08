@@ -3,29 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Blog Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { text-align: center; }
-    form { margin-bottom: 30px; }
-    input, textarea { display: block; width: 100%; margin: 5px 0; padding: 10px; }
-    .post { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; position: relative; }
-    .post button { margin-right: 10px; }
-  </style>
+  <title>Dashboard - My Blog</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>My Dashboard</h1>
+  <header>
+    <h1>Dashboard</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="login.html">Logout</a>
+    </nav>
+  </header>
 
-  <!-- Create Post -->
-  <form id="postForm">
-    <input type="text" id="title" placeholder="Post title" required />
-    <textarea id="content" placeholder="Post content" required></textarea>
-    <button type="submit">Create Post</button>
-  </form>
+  <main>
+    <h2>Create New Post</h2>
+    <form id="postForm">
+      <input type="text" id="title" placeholder="Title" required>
+      <textarea id="content" placeholder="Content" required></textarea>
+      <button type="submit">Create Post</button>
+    </form>
 
-  <h2>My Posts</h2>
-  <div id="myPosts"></div>
+    <h2>My Posts</h2>
+    <div id="myPosts"></div>
+  </main>
 
-  <script src="dashboard.js"></script>
+  <footer>© 2026 My Blog</footer>
+  <script src="script.js"></script>
 </body>
 </html>
