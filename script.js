@@ -116,6 +116,7 @@ if (loginForm) {
   });
 }
 
+
 // ------------------- Dashboard -------------------
 if (window.location.href.includes("dashboard.html")) {
   const token = localStorage.getItem("token");
