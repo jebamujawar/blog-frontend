@@ -2,37 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Blog Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    form { margin-bottom: 30px; }
+    input, textarea { display: block; width: 100%; margin: 5px 0; padding: 10px; }
+    .post { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; position: relative; }
+    .post button { margin-right: 10px; }
+  </style>
 </head>
 <body>
-  <h1>My Blog Dashboard</h1>
+  <h1>My Dashboard</h1>
 
-  <!-- Create new post -->
-  <section id="createPostSection">
-    <h2>Create New Post</h2>
-    <form id="postForm">
-      <input type="text" id="title" placeholder="Post Title" required>
-      <textarea id="content" placeholder="Write your content..." required></textarea>
-      <button type="submit">Create Post</button>
-    </form>
-  </section>
+  <!-- Create Post -->
+  <form id="postForm">
+    <input type="text" id="title" placeholder="Post title" required />
+    <textarea id="content" placeholder="Post content" required></textarea>
+    <button type="submit">Create Post</button>
+  </form>
 
-  <!-- List of your posts with Edit/Delete -->
-  <section id="myPostsSection">
-    <h2>My Posts</h2>
-    <div id="myPosts">
-      <!-- Posts will be dynamically inserted here via JS -->
-      <!-- Example structure:
-      <div class="post" data-id="POST_ID">
-        <h3>Post Title</h3>
-        <p>Post content...</p>
-        <button onclick="editPost('POST_ID')">Edit</button>
-        <button onclick="deletePost('POST_ID')">Delete</button>
-      </div>
-      -->
-    </div>
-  </section>
+  <h2>My Posts</h2>
+  <div id="myPosts"></div>
 
   <script src="dashboard.js"></script>
 </body>

@@ -1,4 +1,4 @@
-const API_URL = "https://blog-backend-3-eoll.onrender.com/api"; // your backend
+const API_URL = "https://blog-backend-3-eoll.onrender.com/api"; // Render backend
 const token = localStorage.getItem("token");
 const userId = localStorage.getItem("userId");
 
@@ -7,30 +7,32 @@ if (!token) {
   window.location.href = "login.html";
 }
 
-// Load posts by the logged-in user
+// Load posts by logged-in user
 async function loadMyPosts() {
   try {
     const res = await fetch(`${API_URL}/posts`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+
+    if (!res.ok) throw new Error("Failed to fetch posts");
+
     const posts = await res.json();
     const container = document.getElementById("myPosts");
 
-    // Filter posts by this user
-    const myPosts = posts.filter(p => p.author._id === userId);
+    const myPosts = posts.filter(p => p.author._id.toString() === userId);
 
     container.innerHTML = myPosts.map(p => `
       <div class="post" data-id="${p._id}">
-        <h3>${p.title}</h3>
-        <p>${p.content}</p>
-        <button onclick="editPost('${p._id}')">Edit</button>
-        <button class="delete" onclick="deletePost('${p._id}')">Delete</button>
+        <input class="edit-title" value="${p.title}" />
+        <textarea class="edit-content">${p.content}</textarea>
+        <button onclick="savePost('${p._id}')">Save</button>
+        <button onclick="deletePost('${p._id}')">Delete</button>
       </div>
     `).join("");
 
   } catch (err) {
     console.error(err);
-    alert("Failed to load posts.");
+    alert("Error loading posts");
   }
 }
 
@@ -44,24 +46,23 @@ postForm.addEventListener("submit", async e => {
   try {
     const res = await fetch(`${API_URL}/posts`, {
       method: "POST",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({ title, content })
     });
 
-    if (res.ok) {
-      alert("Post created!");
-      postForm.reset();
-      loadMyPosts();
-    } else {
+    if (!res.ok) {
       const data = await res.json();
-      alert(data.error);
+      throw new Error(data.error || "Failed to create post");
     }
+
+    postForm.reset();
+    loadMyPosts();
   } catch (err) {
     console.error(err);
-    alert("Error creating post.");
+    alert(err.message);
   }
 });
 
@@ -75,25 +76,25 @@ async function deletePost(postId) {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (res.ok) {
-      alert("Post deleted!");
-      loadMyPosts();
-    } else {
+    if (!res.ok) {
       const data = await res.json();
-      alert(data.error);
+      throw new Error(data.error || "Failed to delete post");
     }
+
+    loadMyPosts();
   } catch (err) {
     console.error(err);
-    alert("Error deleting post.");
+    alert(err.message);
   }
 }
 
-// Edit post
-async function editPost(postId) {
-  const newTitle = prompt("Enter new title:");
-  const newContent = prompt("Enter new content:");
+// Save post (inline edit)
+async function savePost(postId) {
+  const container = document.querySelector(`.post[data-id="${postId}"]`);
+  const title = container.querySelector(".edit-title").value;
+  const content = container.querySelector(".edit-content").value;
 
-  if (!newTitle || !newContent) return;
+  if (!title || !content) return alert("Title and content required");
 
   try {
     const res = await fetch(`${API_URL}/posts/${postId}`, {
@@ -102,19 +103,18 @@ async function editPost(postId) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ title: newTitle, content: newContent })
+      body: JSON.stringify({ title, content })
     });
 
-    if (res.ok) {
-      alert("Post updated!");
-      loadMyPosts();
-    } else {
+    if (!res.ok) {
       const data = await res.json();
-      alert(data.error);
+      throw new Error(data.error || "Failed to update post");
     }
+
+    loadMyPosts();
   } catch (err) {
     console.error(err);
-    alert("Error updating post.");
+    alert(err.message);
   }
 }
 
