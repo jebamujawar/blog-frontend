@@ -106,29 +106,27 @@ if (window.location.href.includes("dashboard.html")) {
   // Load user's posts
   async function loadMyPosts() {
   try {
-    const res = await fetchWithToken(`${API_URL}/posts`);
+    const res = await fetch(`${API_URL}/posts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     const posts = await res.json();
     const myPosts = posts.filter(p => p.author._id === userId);
 
     myPostsContainer.innerHTML = myPosts.map(p => `
       <div class="post-card" data-id="${p._id}">
-        <h3>${p.title}</h3>
-        <small>By ${p.author.name}</small>
-        <p>${p.content}</p>
-        <input class="edit-title" value="${p.title}" placeholder="Edit title" />
-        <textarea class="edit-content" rows="3">${p.content}</textarea>
-        <div>
-          <button onclick="savePost('${p._id}')">Save</button>
-          <button onclick="deletePost('${p._id}')" style="background:#c0392b;color:#fff;">Delete</button>
+        <input class="edit-title" value="${p.title}" placeholder="Title" />
+        <textarea class="edit-content" rows="4" placeholder="Content">${p.content}</textarea>
+        <div class="post-actions">
+          <button class="btn-save" onclick="savePost('${p._id}')">Save</button>
+          <button class="btn-delete" onclick="deletePost('${p._id}')">Delete</button>
         </div>
       </div>
     `).join("");
   } catch (err) {
     console.error(err);
-    myPostsContainer.innerHTML = "<p>Failed to load posts</p>";
+    alert("Failed to load posts");
   }
 }
-
 
 
   // Create post
