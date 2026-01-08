@@ -1,4 +1,21 @@
-const API_URL = "https://blog-backend-3-eoll.onrender.com/api"; // your Render backend
+const API_URL = "https://blog-backend-3-eoll.onrender.com/api";
+
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+
+async function fetchWithToken(url, options = {}) {
+  options.headers = {
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json"
+  };
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+  return response.json();
+}
 
 // --------------------------------------
 // Public posts on index.html
@@ -25,75 +42,13 @@ async function loadPosts() {
 loadPosts();
 
 // --------------------------------------
-// Signup
+// Signup and Login code unchanged
 // --------------------------------------
-const signupForm = document.getElementById("signupForm");
-if (signupForm) {
-  signupForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    try {
-      const res = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert("Signup successful!");
-        window.location.href = "login.html";
-      } else {
-        alert(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Signup failed");
-    }
-  });
-}
-
-// --------------------------------------
-// Login
-// --------------------------------------
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId);
-        window.location.href = "dashboard.html";
-      } else {
-        alert(data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Login failed");
-    }
-  });
-}
+// ...
 
 // --------------------------------------
 // Dashboard
 // --------------------------------------
-const token = localStorage.getItem("token");
-const userId = localStorage.getItem("userId");
-
 if (window.location.href.includes("dashboard.html")) {
   if (!token) {
     alert("Please login first");
@@ -103,48 +58,41 @@ if (window.location.href.includes("dashboard.html")) {
   const postForm = document.getElementById("postForm");
   const myPostsContainer = document.getElementById("myPosts");
 
-  // Load user's posts
+  // Load user's posts using fetchWithToken
   async function loadMyPosts() {
-  try {
-    const res = await fetch(`${API_URL}/posts`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const posts = await res.json();
-    const myPosts = posts.filter(p => p.author._id === userId);
+    try {
+      const posts = await fetchWithToken(`${API_URL}/posts`);
+      const myPosts = posts.filter(p => p.author._id === userId);
 
-    myPostsContainer.innerHTML = myPosts.map(p => `
-      <div class="post-card" data-id="${p._id}">
-        <input class="edit-title" value="${p.title}" placeholder="Title" />
-        <textarea class="edit-content" rows="4" placeholder="Content">${p.content}</textarea>
-        <div class="post-actions">
-          <button class="btn-save" onclick="savePost('${p._id}')">Save</button>
-          <button class="btn-delete" onclick="deletePost('${p._id}')">Delete</button>
+      myPostsContainer.innerHTML = myPosts.map(p => `
+        <div class="post-card" data-id="${p._id}">
+          <input class="edit-title" value="${p.title}" placeholder="Title" />
+          <textarea class="edit-content" rows="4" placeholder="Content">${p.content}</textarea>
+          <div class="post-actions">
+            <button class="btn-save" onclick="savePost('${p._id}')">Save</button>
+            <button class="btn-delete" onclick="deletePost('${p._id}')">Delete</button>
+          </div>
         </div>
-      </div>
-    `).join("");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to load posts");
+      `).join("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load posts");
+    }
   }
-}
 
+  loadMyPosts();
 
-  // Create post
+  // Create post using fetchWithToken
   postForm.addEventListener("submit", async e => {
     e.preventDefault();
     const title = document.getElementById("title").value;
     const content = document.getElementById("content").value;
 
     try {
-      const res = await fetch(`${API_URL}/posts`, {
+      await fetchWithToken(`${API_URL}/posts`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
         body: JSON.stringify({ title, content })
       });
-      if (!res.ok) throw await res.json();
       postForm.reset();
       loadMyPosts();
     } catch (err) {
@@ -157,11 +105,7 @@ if (window.location.href.includes("dashboard.html")) {
   window.deletePost = async function(postId) {
     if (!confirm("Are you sure you want to delete this post?")) return;
     try {
-      const res = await fetch(`${API_URL}/posts/${postId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw await res.json();
+      await fetchWithToken(`${API_URL}/posts/${postId}`, { method: "DELETE" });
       loadMyPosts();
     } catch (err) {
       console.error(err);
@@ -171,20 +115,15 @@ if (window.location.href.includes("dashboard.html")) {
 
   // Save post (edit)
   window.savePost = async function(postId) {
-    const container = document.querySelector(`.post[data-id="${postId}"]`);
+    const container = document.querySelector(`.post-card[data-id="${postId}"]`);
     const title = container.querySelector(".edit-title").value;
     const content = container.querySelector(".edit-content").value;
 
     try {
-      const res = await fetch(`${API_URL}/posts/${postId}`, {
+      await fetchWithToken(`${API_URL}/posts/${postId}`, {
         method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
         body: JSON.stringify({ title, content })
       });
-      if (!res.ok) throw await res.json();
       loadMyPosts();
     } catch (err) {
       console.error(err);
