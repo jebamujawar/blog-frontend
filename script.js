@@ -1,14 +1,26 @@
 const API_URL = "https://blog-backend-3-eoll.onrender.com/api";
 
-const token = localStorage.getItem("token");
-const userId = localStorage.getItem("userId");
+// Logout
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    window.location.href = "login.html";
+  });
+}
 
+// Function to always get latest token
 async function fetchWithToken(url, options = {}) {
+  const token = localStorage.getItem("token");
+  if (!token) throw { error: "No token found. Please login again." };
+
   options.headers = {
     ...(options.headers || {}),
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json"
   };
+
   const response = await fetch(url, options);
   if (!response.ok) {
     const error = await response.json();
@@ -17,39 +29,11 @@ async function fetchWithToken(url, options = {}) {
   return response.json();
 }
 
-// --------------------------------------
-// Public posts on index.html
-// --------------------------------------
-async function loadPosts() {
-  const container = document.getElementById("posts");
-  if (!container) return;
-
-  try {
-    const res = await fetch(`${API_URL}/posts`);
-    const posts = await res.json();
-    container.innerHTML = posts.map(p => `
-      <div class="post">
-        <h3>${p.title}</h3>
-        <p>${p.content}</p>
-        <small>By ${p.author.name}</small>
-      </div>
-    `).join("");
-  } catch (err) {
-    container.innerHTML = "<p>Failed to load posts</p>";
-    console.error(err);
-  }
-}
-loadPosts();
-
-// --------------------------------------
-// Signup and Login code unchanged
-// --------------------------------------
-// ...
-
-// --------------------------------------
-// Dashboard
-// --------------------------------------
+// Dashboard functionality
 if (window.location.href.includes("dashboard.html")) {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
   if (!token) {
     alert("Please login first");
     window.location.href = "login.html";
@@ -58,11 +42,16 @@ if (window.location.href.includes("dashboard.html")) {
   const postForm = document.getElementById("postForm");
   const myPostsContainer = document.getElementById("myPosts");
 
-  // Load user's posts using fetchWithToken
+  // Load user posts
   async function loadMyPosts() {
     try {
       const posts = await fetchWithToken(`${API_URL}/posts`);
       const myPosts = posts.filter(p => p.author._id === userId);
+
+      if (myPosts.length === 0) {
+        myPostsContainer.innerHTML = `<p style="text-align:center; color:#666;">No posts yet. Create your first post above!</p>`;
+        return;
+      }
 
       myPostsContainer.innerHTML = myPosts.map(p => `
         <div class="post-card" data-id="${p._id}">
@@ -76,13 +65,13 @@ if (window.location.href.includes("dashboard.html")) {
       `).join("");
     } catch (err) {
       console.error(err);
-      alert("Failed to load posts");
+      alert(err.error || "Failed to load posts");
     }
   }
 
   loadMyPosts();
 
-  // Create post using fetchWithToken
+  // Create post
   postForm.addEventListener("submit", async e => {
     e.preventDefault();
     const title = document.getElementById("title").value;
@@ -116,6 +105,7 @@ if (window.location.href.includes("dashboard.html")) {
   // Save post (edit)
   window.savePost = async function(postId) {
     const container = document.querySelector(`.post-card[data-id="${postId}"]`);
+    if (!container) return;
     const title = container.querySelector(".edit-title").value;
     const content = container.querySelector(".edit-content").value;
 
