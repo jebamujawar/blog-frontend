@@ -2,41 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - My Blog</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1>My Blog Dashboard</h1>
 
-  <header>
-    <h1>Dashboard</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="#" id="logoutBtn">Logout</a>
-    </nav>
-  </header>
+  <section id="createPostSection">
+    <h2>Create New Post</h2>
+    <form id="postForm">
+      <input type="text" id="title" placeholder="Post Title" required>
+      <textarea id="content" placeholder="Write your content..." required></textarea>
+      <button type="submit">Create Post</button>
+    </form>
+  </section>
 
-  <main>
-    <section class="form-container">
-      <h2>Create Post</h2>
-      <form id="postForm">
-        <label for="title">Title:</label>
-        <input type="text" id="title" required>
-        
-        <label for="content">Content:</label>
-        <textarea id="content" rows="5" required></textarea>
-        
-        <button type="submit">Save Post</button>
-      </form>
-    </section>
+  <section id="myPostsSection">
+    <h2>My Posts</h2>
+    <div id="myPosts"></div>
+  </section>
 
-    <section id="userPosts">
-      <h2>Your Posts</h2>
-      <!-- User posts displayed here -->
-    </section>
-  </main>
-
-  <footer>© 2026 My Blog. All rights reserved.</footer>
-  <script src="script.js"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
