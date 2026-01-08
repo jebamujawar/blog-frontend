@@ -1,4 +1,4 @@
-const API_URL = "https://blog-backend-3-eoll.onrender.com/api";
+const API_URL = "https://blog-backend-3-eoll.onrender.com/api"; // your backend
 const token = localStorage.getItem("token");
 const userId = localStorage.getItem("userId");
 
@@ -7,25 +7,31 @@ if (!token) {
   window.location.href = "login.html";
 }
 
-// Load user's posts
+// Load posts by the logged-in user
 async function loadMyPosts() {
-  const res = await fetch(`${API_URL}/posts`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const posts = await res.json();
-  const container = document.getElementById("myPosts");
+  try {
+    const res = await fetch(`${API_URL}/posts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const posts = await res.json();
+    const container = document.getElementById("myPosts");
 
-  // Filter posts by logged-in user
-  const myPosts = posts.filter(p => p.author._id === userId);
+    // Filter posts by this user
+    const myPosts = posts.filter(p => p.author._id === userId);
 
-  container.innerHTML = myPosts.map(p => `
-    <div class="post" data-id="${p._id}">
-      <h3>${p.title}</h3>
-      <p>${p.content}</p>
-      <button onclick="editPost('${p._id}')">Edit</button>
-      <button onclick="deletePost('${p._id}')">Delete</button>
-    </div>
-  `).join("");
+    container.innerHTML = myPosts.map(p => `
+      <div class="post" data-id="${p._id}">
+        <h3>${p.title}</h3>
+        <p>${p.content}</p>
+        <button onclick="editPost('${p._id}')">Edit</button>
+        <button class="delete" onclick="deletePost('${p._id}')">Delete</button>
+      </div>
+    `).join("");
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load posts.");
+  }
 }
 
 // Create new post
@@ -35,22 +41,27 @@ postForm.addEventListener("submit", async e => {
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
 
-  const res = await fetch(`${API_URL}/posts`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ title, content })
-  });
+  try {
+    const res = await fetch(`${API_URL}/posts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ title, content })
+    });
 
-  if (res.ok) {
-    alert("Post created!");
-    postForm.reset();
-    loadMyPosts();
-  } else {
-    const data = await res.json();
-    alert(data.error);
+    if (res.ok) {
+      alert("Post created!");
+      postForm.reset();
+      loadMyPosts();
+    } else {
+      const data = await res.json();
+      alert(data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error creating post.");
   }
 });
 
@@ -58,17 +69,22 @@ postForm.addEventListener("submit", async e => {
 async function deletePost(postId) {
   if (!confirm("Are you sure you want to delete this post?")) return;
 
-  const res = await fetch(`${API_URL}/posts/${postId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    const res = await fetch(`${API_URL}/posts/${postId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-  if (res.ok) {
-    alert("Post deleted!");
-    loadMyPosts();
-  } else {
-    const data = await res.json();
-    alert(data.error);
+    if (res.ok) {
+      alert("Post deleted!");
+      loadMyPosts();
+    } else {
+      const data = await res.json();
+      alert(data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting post.");
   }
 }
 
@@ -79,21 +95,26 @@ async function editPost(postId) {
 
   if (!newTitle || !newContent) return;
 
-  const res = await fetch(`${API_URL}/posts/${postId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ title: newTitle, content: newContent })
-  });
+  try {
+    const res = await fetch(`${API_URL}/posts/${postId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ title: newTitle, content: newContent })
+    });
 
-  if (res.ok) {
-    alert("Post updated!");
-    loadMyPosts();
-  } else {
-    const data = await res.json();
-    alert(data.error);
+    if (res.ok) {
+      alert("Post updated!");
+      loadMyPosts();
+    } else {
+      const data = await res.json();
+      alert(data.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error updating post.");
   }
 }
 
