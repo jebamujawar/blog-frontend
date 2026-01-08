@@ -11,7 +11,7 @@
     <h1>Dashboard</h1>
     <nav>
       <a href="index.html">Home</a>
-      <a href="login.html">Logout</a>
+      <a href="#" id="logoutBtn">Logout</a>
     </nav>
   </header>
 
@@ -19,7 +19,7 @@
     <h2>Create New Post</h2>
     <form id="postForm">
       <input type="text" id="title" placeholder="Title" required>
-      <textarea id="content" placeholder="Content" required></textarea>
+      <textarea id="content" placeholder="Content" rows="4" required></textarea>
       <button type="submit">Create Post</button>
     </form>
 
@@ -27,7 +27,7 @@
     <div id="myPosts"></div>
   </main>
 
-  <footer>© 2026 My Blog</footer>
+  <footer style="text-align:center; padding:1rem;">© 2026 My Blog</footer>
   <script src="script.js"></script>
 </body>
 </html>
